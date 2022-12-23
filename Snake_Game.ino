@@ -65,10 +65,6 @@ struct Player {
   char name[3];
 };
 
-
-
-
-
 //eeprom variables
 byte matrixBrightness = 1;
 int LCDbrightness;
@@ -115,30 +111,24 @@ String highscoreNames[5] = { "", "", "", "", "" };
 
 
 //game variables
-int snakeSpeed = 700; //speed (lower = faster , higher = slower) milliseconds to move
-
-
+int snakeSpeed = 700; 
 int place = 0; //highsore place
-
 int maxlength = 3;
 char direction;
 int row = 4;
 int col = 4;
 bool restart = true;
-
 bool dead = false;
 int matrix [8][8]; 
-
 int foodPos [8][8];
 bool createFood = true;
 int xFood; 
 int yFood; 
 int foodBlink = 200; 
 bool blinking = false;
-unsigned long lastappletime;
-unsigned long lasttime;
-byte happyFace[8]={B11111111, B11000011, B10101001, B10000101, B10000101, B10101001, B11000011, B11111111};//happy face
-byte sadFace[8]={B11111111, B11000011, B10100101, B10001001, B10001001, B10100101, B11000011, B11111111};//sad face
+unsigned long lastFood;
+unsigned long lastTime;
+
 
 void sounds(const int sound){
       if (audio ==1){
@@ -156,10 +146,9 @@ void setup() {
 
 
   pinMode(pinSW, INPUT_PULLUP);  // activate pull-up resistor on the push-button pin
-    // the zero refers to the MAX7219 number, it iszero for 1 chip
-  analogWrite(lcdbrightness, LCDbrightness * 51);
+  analogWrite(lcdbrightness, LCDbrightness * 85);
   lc.shutdown(0, false);  // turn off power saving,enables display
-  lc.setIntensity(0, matrixBrightness);  // sets brightness(0~15 possiblevalues)
+  lc.setIntensity(0, matrixBrightness * 3);  // sets brightness(0~15 possiblevalues)
   lc.clearDisplay(0);  // clear screen
  
 
@@ -200,45 +189,29 @@ void loop() {
     scoresSection();
   } else if (state == 3) {
     settingsSection();
-  } else if (state == 4) {
-   
-    aboutSection();
-  
+  } else if (state == 4) {  
+    aboutSection(); 
   } else if (state == 5) {
-
     howToPlaySection();
-  
   } else if (state == 6) {
-
     lcdBrightness();
-  
   } else if (state == 7) {
- 
     setMatrixBrightness();
-  
   } else if (state == 8) {
-
     setDifficulty();
-  
   } else if (state == 9) {
-
     changeName();
-  
   } else if (state == 10) {
-
     setAudio();
-
   } else if (state == 11) {
-
     resetHighscores();
-  
   }
 }
 
 void printMenu() {
   mainMenuMovement();
   joystickButton();
-   lcd.setCursor(0, 0);
+  lcd.setCursor(0, 0);
   lcd.print("      Menu    ");
   lcd.setCursor(0, 1);
   lcd.print(">");
@@ -289,7 +262,7 @@ void matrixGame() {
     updateHighscores();
 
     endGame();
-    delay(250);
+    delay(500);
     col = 4;
     row = 4;
     for (int x = 0; x < 8; x++) {
@@ -355,13 +328,13 @@ void food() {
 
   }
   if (createFood == false) { // blink
-    if (blinking == false && millis() - lastappletime > foodBlink) {
+    if (blinking == false && millis() - lastFood > foodBlink) {
       lc.setLed(0, xFood, yFood, true);
-      lastappletime = millis();
+      lastFood = millis();
       blinking = true;
-    } else if (blinking == true && millis() - lastappletime > foodBlink) {
+    } else if (blinking == true && millis() - lastFood > foodBlink) {
       lc.setLed(0, xFood, yFood, false);
-      lastappletime = millis();
+      lastFood = millis();
       blinking = false;
     }
   }
@@ -369,8 +342,8 @@ void food() {
 }
 void movement(){
   
-  if (millis()- lasttime > snakeSpeed){
-    lasttime = millis();
+  if (millis()- lastTime > snakeSpeed){
+    lastTime = millis();
   switch (direction){
     case 'U':
       col --;
@@ -394,29 +367,19 @@ void movement(){
   if (direction == 'L' ||direction == 'R' ||direction == 'D' ||direction == 'U' ){
   if (row <0 || row >7 || col < 0 || col > 7) //check if snake hit a wall
   { 
-      Serial.println("DEAD because of wall");    
-      Serial.println("row");
-      Serial.println(row);
-      Serial.println("col");
-      
-      Serial.println(col);
-     restart = true;
+      restart = true;
       dead = true;
      
-     
-      
       }
 
   
   
 
-  else if(matrix [row][col] > 0 && matrix [row][col] != maxlength ) //if touches snake 
+  else if(matrix [row][col] > 0 && matrix [row][col] != maxlength ) //check if snake hits itself 
    {
-    Serial.println("DEAD because of snake");
     restart = true;
     dead = true;
-    
-    
+       
   }
   else{
       for(int x = 0; x <8 ; x ++){    //remove last part of snake
@@ -482,7 +445,7 @@ void updatePositions(){
 void endGame() {
 if (place > 0){
      lcd.setCursor(0,0);
-     lcd.print("  Congratulation!! ");
+     lcd.print(" Congratulation!! ");
      lcd.setCursor(0,1);
      lcd.print("    You're #");
      lcd.print(place);   
@@ -492,14 +455,10 @@ if (place > 0){
      lcd.setCursor(0,0);
      lcd.print("  Better luck   ");
      lcd.setCursor(0,1);
-     lcd.print("      next time!");
+     lcd.print("    next time!");
      lcd.print(place);   
- 
-     
+  
     }
-   
-    
-
 
 }
 
